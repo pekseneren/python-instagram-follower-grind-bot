@@ -1,7 +1,15 @@
-from constants import *
+from re import TEMPLATE
 from selenium import webdriver
 from webdriver_manager.chrome import ChromeDriverManager
+import threading
+import time
+import random
 import os
+
+class IG_ACCOUNT:
+    def __init__(myobj, username, password):
+        myobj.username = username
+        myobj.password = password
 
 INPUT_USERNAME = "/html/body/div[1]/section/main/article/div[2]/div[1]/div/form/div/div[1]/div/label/input"
 INPUT_PASSWORD = "/html/body/div[1]/section/main/article/div[2]/div[1]/div/form/div/div[2]/div/label/input"
@@ -10,46 +18,72 @@ BUTTON_DONTSAVE = "/html/body/div[1]/section/main/div/div/div/div/button"
 BUTTON_OPENUNFOLLOW = "//*[@id='react-root']/section/main/div/header/section/div[1]/div[2]/div/div[2]/div/span/span[1]/button"
 BUTTON_UNFOLLOW = "//*[text()='Unfollow']"
 BUTTON_FOLLOW = "//*[text()='Follow']"
-USERNAME = os.environ["USERNAME"]
-PASSWORD = os.environ["PASSWORD"]
-FOLLOW_ACCOUNT_PAGE = "https://www.instagram.com/cristiano"
-PAGE = "https://www.instagram.com"
+TEST_ACCOUNTS = [ IG_ACCOUNT("", "") ]
+INSTAGRAM_MAINPAGE_URL = "https://www.instagram.com/"
+ACCOUNTS = [
+    "cristiano", 
+    "arianagrande"
+]
+IDLE_FOR_PER_ACCOUNT = 5
+CONSTANT_IDLE_RANDOM_MULTIPILER_FOR_PER_ACCOUNT = 1
+IDLE_FOR_PER_ITERATE = 300
+CONSTANT_IDLE_RANDOM_MULTIPILER_FOR_PER_ITERATE = 10
+IDLE_FOR_UNHANDLED_BAN = 600
+IDLE_FOR_ELEMENT_TO_BE_FOUND = 10
 
-driver = webdriver.Chrome(ChromeDriverManager().install())
-
-try:
-    driver.implicitly_wait(10)
-    driver.get(PAGE)
-
-    usernameInput = driver.find_element_by_xpath(INPUT_USERNAME)
-    usernameInput.clear()
-    usernameInput.send_keys(USERNAME)
-
-    passwordInput = driver.find_element_by_xpath(INPUT_PASSWORD)
-    passwordInput.clear()
-    passwordInput.send_keys(PASSWORD)
-
-    driver.find_element_by_xpath(BUTTON_LOGIN).click()
-
-    driver.find_element_by_xpath(BUTTON_DONTSAVE).click()
-
-    driver.get(FOLLOW_ACCOUNT_PAGE)
+def startFlow(account, index):
+    print(account.username, account.password)
+    DRIVER = webdriver.Chrome(ChromeDriverManager().install())
+    DRIVER.implicitly_wait(IDLE_FOR_ELEMENT_TO_BE_FOUND)
+    DRIVER.get(INSTAGRAM_MAINPAGE_URL)
 
     try:
-        driver.find_element_by_xpath(BUTTON_OPENUNFOLLOW).click()
+        usernameInput = DRIVER.find_element_by_xpath(INPUT_USERNAME)
+        usernameInput.clear()
+        usernameInput.send_keys(account.username)
 
-        unfollowButton = driver.find_element_by_xpath(BUTTON_UNFOLLOW).click()
-        print("Unfollow success")
+        passwordInput = DRIVER.find_element_by_xpath(INPUT_PASSWORD)
+        passwordInput.clear()
+        passwordInput.send_keys(account.password)
+
+        DRIVER.find_element_by_xpath(BUTTON_LOGIN).click()
+
+        DRIVER.find_element_by_xpath(BUTTON_DONTSAVE).click()
     except:
-        print("Unfollow failed")
+        input("login failed, enter something to exit.")
 
-    try:
-        driver.find_element_by_xpath(BUTTON_FOLLOW).click()
-        print("Follow success")
-    except:
-        print("Follow failed")
-except:
-    print("Something went wrong")
-    driver.quit()
+        DRIVER.quit()
 
-driver.quit()
+    while True:
+        shuffledACCOUNTS = random.shuffle(ACCOUNTS.copy())
+        for ACCOUNT in shuffledACCOUNTS:
+
+            try:
+                DRIVER.get(INSTAGRAM_MAINPAGE_URL + ACCOUNT)
+            except:
+                print(f'page opening failed for:"{INSTAGRAM_MAINPAGE_URL}{ACCOUNT}"')
+            
+                time.sleep(IDLE_FOR_UNHANDLED_BAN)
+
+            try:
+                DRIVER.find_element_by_xpath(BUTTON_OPENUNFOLLOW).click()
+
+                DRIVER.find_element_by_xpath(BUTTON_UNFOLLOW).click()
+            except:
+                print(f'follow failed for:"{ACCOUNT}"')
+                    
+                time.sleep(IDLE_FOR_UNHANDLED_BAN)  
+
+            try:
+                DRIVER.find_element_by_xpath(BUTTON_FOLLOW).click()
+            except:
+                print(f'follow failed for:"{ACCOUNT}"')
+            
+                time.sleep(IDLE_FOR_UNHANDLED_BAN)
+
+            time.sleep(IDLE_FOR_PER_ACCOUNT + (random.uniform(0, 1) * CONSTANT_IDLE_RANDOM_MULTIPILER_FOR_PER_ACCOUNT))
+    
+        time.sleep(IDLE_FOR_PER_ITERATE + (random.uniform(0, 1) * CONSTANT_IDLE_RANDOM_MULTIPILER_FOR_PER_ITERATE))
+
+for i in range(len(TEST_ACCOUNTS)):
+    threading.Thread(target=startFlow, args=(TEST_ACCOUNTS[i], i)).start()
