@@ -17,6 +17,9 @@ BUTTON_UNFOLLOW = "//*[text()='Unfollow']"
 BUTTON_FOLLOW = "//*[text()='Follow']"
 INSTAGRAM_MAINPAGE_URL = "https://www.instagram.com/"
 
+op = webdriver.ChromeOptions()
+op.add_argument('--headless')
+
 def checkIfElementExist(self, xpath):
     try:
         element = self.find_element_by_xpath(xpath)
@@ -78,7 +81,7 @@ def startFlow(CURRENT_ACCOUNT, index):
     
     COUNT = 0;
 
-    DRIVER = webdriver.Chrome(ChromeDriverManager().install())
+    DRIVER = webdriver.Chrome(ChromeDriverManager().install(), options = op)
     DRIVER.implicitly_wait(constants.IDLE_FOR_ELEMENT_TO_BE_FOUND)
     DRIVER.get(INSTAGRAM_MAINPAGE_URL)
 
