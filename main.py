@@ -1,4 +1,3 @@
-from logging import log
 from selenium import webdriver
 from selenium.common.exceptions import NoSuchElementException
 from webdriver_manager.chrome import ChromeDriverManager
@@ -18,7 +17,6 @@ BUTTON_FOLLOW = "//*[text()='Follow']"
 INSTAGRAM_MAINPAGE_URL = "https://www.instagram.com/"
 
 op = webdriver.ChromeOptions()
-op.add_argument('--headless')
 
 def checkIfElementExist(self, xpath):
     try:
@@ -80,6 +78,9 @@ def triggerUnfollow(self, account, target):
 def startFlow(CURRENT_ACCOUNT, index):
     
     COUNT = 0;
+
+    if constants.HEADLESS_OPTION:
+        op.add_argument('--headless')
 
     DRIVER = webdriver.Chrome(ChromeDriverManager().install(), options = op)
     DRIVER.implicitly_wait(constants.IDLE_FOR_ELEMENT_TO_BE_FOUND)
