@@ -86,7 +86,7 @@ def startFlow(CURRENT_ACCOUNT, index):
     DRIVER.implicitly_wait(constants.IDLE_FOR_ELEMENT_TO_BE_FOUND)
     DRIVER.get(INSTAGRAM_MAINPAGE_URL)
 
-    if login(DRIVER, CURRENT_ACCOUNT) == False:
+    if login(DRIVER, CURRENT_ACCOUNT.username) == False:
         return
     
     while True:
